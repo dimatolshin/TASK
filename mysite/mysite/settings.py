@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-hx581p6sf^hz__@5lz&lg(-=5=^-rbcf%&+3zfkwa47o9&gpat
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1', '[::1]']
 
 # Application definition
 
@@ -81,7 +81,7 @@ DATABASES = {
         'NAME': 'task',
         'USER': 'task',
         'PASSWORD': '12345',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': 5432,
     }
 }

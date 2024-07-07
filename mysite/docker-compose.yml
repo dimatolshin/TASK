@@ -1,0 +1,20 @@
+services:
+  app:
+    build: .
+    depends_on:
+      - db
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+  db:
+    image: postgres:latest
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: task
+      POSTGRES_USER: task
+      POSTGRES_PASSWORD: 12345
+
+volumes:
+  postgres_data:
