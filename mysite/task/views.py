@@ -64,7 +64,7 @@ class Apply_task(APIView):
 
     def post(self, request, *args, **kwargs):
         if self.request.user.profile.status == 'Сотрудник':
-            task = Task.objects.get(pk=self.request.POST['pk'])
+            task = Task.objects.get(pk=self.request.POST['task_pk'])
             task.staff = self.request.user.profile
             task.status = Readiness.in_progress
             task.data_update = date.today()
@@ -101,7 +101,7 @@ class AvailableTaskForStaff(generics.ListAPIView):
             return Task.objects.filter(staff=None)
         if user.has_perm('task.access_all_tasks'):
             return Task.objects.all()
-        return Task.objects.none()  # Возвращает пустой QuerySet
+        return Task.objects.none()
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -137,7 +137,7 @@ class StaffCreateTask(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         if self.request.user.has_perm('task.can_create'):
-            customer = Profile.objects.get(pk=self.request.POST['pk'])
+            customer = Profile.objects.get(pk=self.request.POST['profile_pk'])
             task = Task.objects.create(owner=self.request.user.profile, customer=customer,
                                        text=self.request.POST['text'])
             return Response(TaskSerializer(task).data)
