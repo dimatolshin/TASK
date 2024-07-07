@@ -43,8 +43,8 @@ class List_and_create_task_for_customer(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         if self.request.user.profile.status == 'Заказчик':
             customer = self.request.user.profile
-            task = Task.objects.create(customer=customer, text=self.request.data['text'], owner=customer)
-            return Response(TaskSerializer(task).data)
+            task = Task.objects.create(customer=customer, text=request.data['text'], owner=customer)
+            return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
         else:
             return Response({'Error': 'Отказано в доступе'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -52,7 +52,7 @@ class List_and_create_task_for_customer(generics.ListCreateAPIView):
         if self.request.user.profile.status == 'Заказчик':
             queryset = Task.objects.filter(customer=self.request.user.profile)
             serializer = TaskSerializer(queryset, many=True)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'Error': 'Отказано в доступе'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -69,7 +69,7 @@ class Apply_task(APIView):
             task.status = Readiness.in_progress
             task.data_update = date.today()
             task.save()
-            return Response(TaskSerializer(task).data)
+            return Response(TaskSerializer(task).data, status=status.HTTP_200_OK)
         else:
             return Response({'Error': 'Отказано в доступе'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -86,7 +86,7 @@ class Get_Task(generics.RetrieveAPIView):
         if self.request.user.has_perm('task.access_all_tasks'):
             return Response(TaskSerializer(task).data)
         if self.request.user.profile == task.customer:
-            return Response(TaskSerializer(task).data)
+            return Response(TaskSerializer(task).data, status=status.HTTP_200_OK)
         else:
             return Response({'Error': 'Отказано в доступе'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -107,7 +107,7 @@ class AvailableTaskForStaff(generics.ListAPIView):
         queryset = self.get_queryset()
         if queryset.exists():
             serializer = TaskSerializer(queryset, many=True)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'Error': 'Отказано в доступе'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -126,7 +126,7 @@ class AllMyTaskStaff(generics.ListAPIView):
         queryset = self.get_queryset()
         if queryset.exists():
             serializer = TaskSerializer(queryset, many=True)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'Error': 'Отказано в доступе'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -140,7 +140,7 @@ class StaffCreateTask(generics.CreateAPIView):
             customer = Profile.objects.get(pk=self.request.data['profile_pk'])
             task = Task.objects.create(owner=self.request.user.profile, customer=customer,
                                        text=self.request.data['text'])
-            return Response(TaskSerializer(task).data)
+            return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
         else:
             return Response({'Error': 'Отказано в доступе'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -156,7 +156,7 @@ class EditTask(generics.UpdateAPIView):
             task.status = Readiness.completed
             task.data_finish = date.today()
             task.save()
-            return Response(TaskSerializer(task).data)
+            return Response(TaskSerializer(task).data, status=status.HTTP_200_OK)
         else:
             return Response({'Error': 'Задание выполнено'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -173,7 +173,7 @@ class AddStaffInTask(generics.UpdateAPIView):
             task.status = Readiness.in_progress
             task.data_update = date.today()
             task.save()
-            return Response(TaskSerializer(task).data)
+            return Response(TaskSerializer(task).data, status=status.HTTP_200_OK)
         else:
             return Response({'Error': 'Отказано в доступе'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -183,7 +183,8 @@ class AllStaff(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        if self.request.user.has_perm('task.access_all_staff') or self.request.user.profile.status == GenderStatus.staff:
+        if self.request.user.has_perm(
+                'task.access_all_staff') or self.request.user.profile.status == GenderStatus.staff:
             return Profile.objects.filter(status=GenderStatus.staff)
         return Profile.objects.none()
 
@@ -191,7 +192,7 @@ class AllStaff(generics.ListAPIView):
         queryset = self.get_queryset()
         if queryset.exists():
             serializer = ProfileSerializer(queryset, many=True)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'Error': 'Отказано в доступе'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -209,8 +210,6 @@ class ShowCustomerForStaff(generics.ListAPIView):
         queryset = self.get_queryset()
         if queryset.exists():
             serializer = ProfileSerializer(queryset, many=True)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'Error': 'Отказано в доступе'}, status=status.HTTP_403_FORBIDDEN)
-
-

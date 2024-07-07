@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from .models import Profile, Task
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
-
+import json
 
 class TaskTests(APITestCase):
     def setUp(self):
