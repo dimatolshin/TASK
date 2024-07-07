@@ -81,7 +81,7 @@ DATABASES = {
         'NAME': 'task',
         'USER': 'task',
         'PASSWORD': '12345',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': 5432,
     }
 }
