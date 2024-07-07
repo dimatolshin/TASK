@@ -11,7 +11,7 @@ http://127.0.0.1:8000/api/profiles/
 (get-запрос, token)
 
                             создание задания заказчиком и список его созданных заданий
-http://127.0.0.1:8000/api/task_for_customer/
+http://127.0.0.1:8000/task/api/task_for_customer/
 (1)создание post-запрос, поля:text,token)
 (2)списик заданий ,get-запрос, token)
 

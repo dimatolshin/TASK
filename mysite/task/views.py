@@ -43,7 +43,7 @@ class List_and_create_task_for_customer(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         if self.request.user.profile.status == 'Заказчик':
             customer = self.request.user.profile
-            task = Task.objects.create(customer=customer, text=self.request.POST['text'], owner=customer)
+            task = Task.objects.create(customer=customer, text=self.request.data['text'], owner=customer)
             return Response(TaskSerializer(task).data)
         else:
             return Response({'Error': 'Отказано в доступе'}, status=status.HTTP_403_FORBIDDEN)
@@ -64,7 +64,7 @@ class Apply_task(APIView):
 
     def post(self, request, *args, **kwargs):
         if self.request.user.profile.status == 'Сотрудник':
-            task = Task.objects.get(pk=self.request.POST['task_pk'])
+            task = Task.objects.get(pk=self.request.data['task_pk'])
             task.staff = self.request.user.profile
             task.status = Readiness.in_progress
             task.data_update = date.today()
@@ -137,9 +137,9 @@ class StaffCreateTask(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         if self.request.user.has_perm('task.can_create'):
-            customer = Profile.objects.get(pk=self.request.POST['profile_pk'])
+            customer = Profile.objects.get(pk=self.request.data['profile_pk'])
             task = Task.objects.create(owner=self.request.user.profile, customer=customer,
-                                       text=self.request.POST['text'])
+                                       text=self.request.data['text'])
             return Response(TaskSerializer(task).data)
         else:
             return Response({'Error': 'Отказано в доступе'}, status=status.HTTP_403_FORBIDDEN)
@@ -152,7 +152,7 @@ class EditTask(generics.UpdateAPIView):
     def update(self, request, pk):
         task = Task.objects.get(pk=pk)
         if task.staff == self.request.user.profile and task.status != Readiness.completed:
-            task.report = self.request.POST['report']
+            task.report = self.request.data['report']
             task.status = Readiness.completed
             task.data_finish = date.today()
             task.save()
@@ -168,7 +168,7 @@ class AddStaffInTask(generics.UpdateAPIView):
     def update(self, request, pk):
         task = Task.objects.get(pk=pk)
         if task.staff == None and self.request.user.has_perm('task.can_add_staff'):
-            staff = Profile.objects.get(pk=self.request.POST['profile_pk'])
+            staff = Profile.objects.get(pk=self.request.data['profile_pk'])
             task.staff = staff
             task.status = Readiness.in_progress
             task.data_update = date.today()

@@ -1,44 +1,39 @@
-from django.test import TestCase
-from django.contrib.auth.models import User
-from rest_framework.test import APIClient
+from django.urls import reverse
 from rest_framework import status
-from .models import Profile, Task, GenderStatus, Readiness
+from rest_framework.test import APITestCase
+from django.contrib.auth.models import User
+from .models import Profile, Task
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
 
-class UserCreateAPIViewTestCase(TestCase):
+
+class TaskTests(APITestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.token = Token.objects.create(user=self.user)
         self.client = APIClient()
-        self.user_data = {
-            'username': 'testuser',
-            'password': 'testpassword123',
-            'email': 'test@example.com'
-        }
-        self.user = User.objects.create_user(**self.user_data)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
-    def test_create_user(self):
-        response = self.client.post('/api/user/create/', self.user_data)
+        self.profile = Profile.objects.create(user=self.user, phone='1234567890', photo='path/to/photo.jpg',
+                                              status='Заказчик')
+        self.task = Task.objects.create(customer=self.profile, text='Test Task', owner=self.profile)
+
+    def test_create_task(self):
+        url = reverse('task:List_and_create_task_for_customer')
+        data = {'text': 'New Test Task'}
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue('token' in response.data)
+        self.assertEqual(Task.objects.count(), 2)
+        self.assertEqual(Task.objects.get(id=2).text, 'New Test Task')
 
-class TaskModelTestCase(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpassword123')
-        self.profile = Profile.objects.create(
-            user=self.user,
-            phone=123456789,
-            status=GenderStatus.customer,
-            photo='path/to/photo.jpg'
-        )
-        self.task = Task.objects.create(
-            text='Test Task',
-            owner=self.profile,
-            customer=self.profile
-        )
+    def test_list_tasks(self):
+        url = reverse('task:List_and_create_task_for_customer')
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
 
-    def test_task_creation(self):
-        self.assertEqual(self.task.text, 'Test Task')
-        self.assertEqual(self.task.owner, self.profile)
-        self.assertEqual(self.task.customer, self.profile)
-        self.assertEqual(self.task.status, Readiness.waiting)
-
-
-
+    def tearDown(self):
+        # Очищаем за собой
+        self.user.delete()
+        self.profile.delete()
+        self.task.delete()
